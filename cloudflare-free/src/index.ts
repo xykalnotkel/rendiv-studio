@@ -26,6 +26,8 @@ interface Env {
   GITHUB_REPO?: string;
   /** Secret bersama agar hanya Actions yang boleh update job */
   CALLBACK_SECRET?: string;
+  /** Origin khusus untuk callback dari CI (hindari WAF zona custom) */
+  CALLBACK_ORIGIN?: string;
 }
 
 type JobStatus = 'queued' | 'running' | 'done' | 'error';
@@ -136,7 +138,10 @@ export default {
             jobId: id,
             compositionId: job.compositionId,
             inputProps: job.inputProps,
-            callbackUrl: `${url.origin}/api/jobs/${id}`,
+            // Callback SELALU lewat *.workers.dev, bukan domain custom.
+            // Zona domain custom melewati WAF Cloudflare yang memblokir
+            // IP GitHub Actions dengan HTTP 403; workers.dev tidak.
+            callbackUrl: `${env.CALLBACK_ORIGIN ?? url.origin}/api/jobs/${id}`,
           },
         }),
       });

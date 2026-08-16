@@ -129,3 +129,30 @@ Catatan teknis:
   agar nyaman disentuh.
 - Ukuran font & padding pakai `clamp()` supaya menskala mulus, bukan meloncat.
 - `100dvh` dipakai agar tinggi player tepat walau bar browser mobile muncul-hilang.
+
+---
+
+## Editor teks di web
+
+Buka situs → panel **Edit teks video** (accordion per scene) → ketik → preview
+langsung berubah → klik Render → MP4 memakai teks barumu.
+
+Cara kerjanya: editor menghasilkan objek `overrides` (hanya field yang diubah),
+dikirim sebagai `inputProps` ke player *dan* ke render. Jadi preview = hasil MP4.
+`content.mjs` tetap jadi nilai bawaan; tidak ada file yang ditulis ulang.
+
+Yang bisa diubah: teks pembuka, cuplikan kode, angka/satuan, langkah-langkah,
+brand & CTA penutup. Yang **tidak** bisa: durasi scene — itu terkunci ke panjang
+narasi audio yang sudah direkam.
+
+### Bug yang ditemukan & diperbaiki saat pengujian
+
+1. **`curl -sf` menggagalkan step.** Flag `-f` membuat curl keluar dengan kode 22
+   pada HTTP error, sehingga langkah "Lapor selesai" gagal walau render sukses —
+   status job tersangkut di `queued`. Diganti `-sS` + cetak kode status.
+
+2. **WAF memblokir callback (HTTP 403).** Domain custom `video.xystudio.my.id`
+   berada di balik WAF zona Cloudflare yang menolak IP GitHub Actions. Dari
+   luar 200, dari runner 403. Solusi: `CALLBACK_ORIGIN` mengarahkan callback ke
+   `*.workers.dev` yang tidak melewati WAF zona. Pengunjung tetap memakai
+   domain custom.

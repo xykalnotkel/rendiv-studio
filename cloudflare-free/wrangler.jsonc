@@ -24,7 +24,10 @@
 
   "vars": {
     // diisi saat setup: "owner/repo" tempat workflow render berada
-    "GITHUB_REPO": "xykalnotkel/rendiv-studio"
+    "GITHUB_REPO": "xykalnotkel/rendiv-studio",
+    // GitHub Actions melapor ke URL ini. Sengaja workers.dev: domain custom
+    // berada di balik WAF zona yang memblokir IP runner (HTTP 403).
+    "CALLBACK_ORIGIN": "https://rendiv-studio.akuntiktok76y.workers.dev"
   },
 
   // Domain custom. Cloudflare otomatis membuat record DNS + sertifikat SSL.
