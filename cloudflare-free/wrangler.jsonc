@@ -20,7 +20,7 @@
 
   "vars": {
     // diisi saat setup: "owner/repo" tempat workflow render berada
-    "GITHUB_REPO": ""
+    "GITHUB_REPO": "xykalnotkel/rendiv-studio"
   },
 
   "observability": { "enabled": true }

@@ -35,65 +35,38 @@ Repo **publik** = render tanpa batas. Repo privat ≈ 400 render/bulan.
 
 ---
 
-## Langkah 1 — Push ke GitHub
+## ✅ Sudah aktif sepenuhnya
 
-Repo git sudah saya siapkan (56 file, commit pertama sudah dibuat).
+Setup selesai dan sudah diuji end-to-end:
 
-```bash
-cd /home/user/demo-rendiv
+| Komponen | Status |
+|---|---|
+| Situs | https://rendiv-studio.akuntiktok76y.workers.dev |
+| Repo | https://github.com/xykalnotkel/rendiv-studio (publik) |
+| Worker → GitHub | `configured: true` |
+| Secret `GITHUB_TOKEN` | terpasang di Worker |
+| Secret `CALLBACK_SECRET` | terpasang di Worker **dan** repo |
+| KV `rendiv-studio-jobs` | aktif |
 
-# ganti USERNAME dengan username GitHub kamu
-git remote add origin https://github.com/USERNAME/rendiv-studio.git
-git branch -M main
-git push -u origin main
+### Bukti render pertama
+
+```
+POST /api/jobs                    → 202  job 745b5cb8
+GitHub Actions run #1             → repository_dispatch ✓
+  queued → running → done         → callback berfungsi
+durasi total                      → 7,2 menit
+hasil                             → 4,0 MB
+unduh tanpa login                 → HTTP 200
+validasi                          → 1080x1920, 35,56s, h264 + aac ✓
 ```
 
-Buat repo kosongnya dulu di https://github.com/new — **pilih Public** supaya
-menit Actions tak terbatas. Jangan centang "Add README".
+Tautan hasilnya publik:
+`https://github.com/xykalnotkel/rendiv-studio/releases/download/render-745b5cb8/745b5cb8.mp4`
 
-## Langkah 2 — Sambungkan Worker ke GitHub
+### Cara pakai
 
-Butuh Personal Access Token GitHub:
-
-1. Buka https://github.com/settings/tokens/new
-2. Note: `rendiv-render`, Expiration: sesukamu
-3. Centang scope **`repo`** saja
-4. Generate, salin tokennya
-
-Lalu jalankan (dari folder `cloudflare-free`):
-
-```bash
-cd cloudflare-free
-export CLOUDFLARE_API_TOKEN=<token-cloudflare-kamu>
-export CLOUDFLARE_ACCOUNT_ID=a678fee6e0a026ccd2fd978cdf07806a
-
-# 1. token GitHub (sebagai secret, tidak terlihat di config)
-npx wrangler secret put GITHUB_TOKEN
-#    → tempel token GitHub
-
-# 2. secret bersama untuk callback dari Actions
-npx wrangler secret put CALLBACK_SECRET
-#    → isi kalimat acak apa saja, mis: "kucing-oren-makan-bakso-2026"
-
-# 3. isi GITHUB_REPO di wrangler.jsonc → "USERNAME/rendiv-studio"
-#    lalu deploy ulang
-npm run deploy
-```
-
-Terakhir, daftarkan `CALLBACK_SECRET` yang sama di GitHub:
-**Settings → Secrets and variables → Actions → New repository secret**
-- Name: `CALLBACK_SECRET`
-- Value: kalimat acak yang sama persis
-
-## Selesai
-
-Buka situsnya, klik **Render video ini**. Progress bar jalan, dan setelah
-beberapa menit muncul tombol unduh MP4 — tautannya publik, bisa dibagikan ke
-siapa saja.
-
-Boleh tutup halamannya; job tetap berjalan di GitHub.
-
----
+Buka situsnya → klik **Render video ini** → tunggu ±7 menit → tombol unduh muncul.
+Boleh tutup halaman; job tetap jalan di GitHub.
 
 ## Pakai domain sendiri (opsional, gratis)
 
@@ -123,8 +96,9 @@ tidak hilang walau pembuatan Release gagal.
 
 ---
 
-## 🔑 Jangan lupa
+## 🔑 Catatan keamanan
 
-Token Cloudflare kamu masih tersimpan sebagai teks biasa di
-`/home/user/uploads/`. **Putar/rotate token itu** di
-https://dash.cloudflare.com/profile/api-tokens setelah setup selesai.
+Token Cloudflare & GitHub tersimpan sebagai teks biasa di `/home/user/uploads/`
+dan **tidak** ikut ter-commit ke git (sudah diverifikasi). Token GitHub yang
+dipakai punya scope sangat luas (`repo`, `admin:org`, `delete_repo`, dll) —
+kalau nanti workspace ini dibagikan, ganti dengan token ber-scope `repo` saja.

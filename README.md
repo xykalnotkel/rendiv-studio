@@ -62,6 +62,10 @@ otomatis menyusut dan scene sesudahnya bergeser.
 ## Deploy
 
 **Live:** https://rendiv-studio.akuntiktok76y.workers.dev
+**Repo:** https://github.com/xykalnotkel/rendiv-studio
+
+Render publik sudah aktif — klik tombol di situs, video dirender GitHub Actions
+(~7 menit), hasilnya jadi tautan unduhan publik. Tanpa server, tanpa kartu kredit.
 
 | Cara | Biaya | Kartu | Render publik |
 |---|---|---|---|
