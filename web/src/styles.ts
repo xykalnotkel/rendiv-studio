@@ -260,6 +260,78 @@ body {
 }
 .dl:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 
+/* ---------- editor ---------- */
+.panel-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; margin-bottom: 10px;
+}
+.linkbtn {
+  font: inherit; background: none; border: none; padding: 4px 6px;
+  color: ${c.accent}; font-size: 12.5px; cursor: pointer; border-radius: 6px;
+}
+.linkbtn:hover { text-decoration: underline; }
+.linkbtn:focus-visible { outline: 2px solid ${c.accent}; outline-offset: 2px; }
+
+.accordion { display: grid; gap: 8px; }
+
+.acc-item {
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(0,0,0,0.18);
+}
+.acc-item.is-open { border-color: rgba(88,166,255,0.35); }
+
+.acc-head {
+  font: inherit; width: 100%; display: flex; align-items: center; gap: 10px;
+  padding: 11px 12px; background: none; border: none; color: #e6edf3;
+  cursor: pointer; text-align: left; min-height: 44px;
+}
+.acc-head:hover { background: rgba(255,255,255,0.05); }
+.acc-head:focus-visible { outline: 2px solid ${c.accent}; outline-offset: -2px; }
+.acc-num {
+  flex: none; width: 22px; height: 22px; border-radius: 50%;
+  background: rgba(255,255,255,0.10); color: ${c.subtle};
+  font-size: 11.5px; font-weight: 700;
+  display: grid; place-items: center;
+}
+.is-open .acc-num { background: ${c.accent}; color: ${c.bg}; }
+.acc-title { flex: 1; font-size: 13.5px; font-weight: 600; }
+.acc-chevron { color: ${c.muted}; font-size: 17px; line-height: 1; }
+
+.acc-body {
+  padding: 4px 12px 14px;
+  display: grid; gap: 12px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+}
+
+.field { display: grid; gap: 6px; min-width: 0; }
+.field-label {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+  font-size: 12px; color: ${c.muted};
+}
+.counter { font-variant-numeric: tabular-nums; font-size: 11px; opacity: .75; }
+.counter.over { color: ${c.accentWarm}; opacity: 1; font-weight: 700; }
+
+.input {
+  font: inherit; width: 100%;
+  padding: 9px 11px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(0,0,0,0.40);
+  color: #e6edf3;
+  /* 16px mencegah iOS auto-zoom saat field difokus */
+  font-size: 16px;
+  line-height: 1.45;
+  resize: vertical;
+  min-width: 0;
+}
+@media (min-width: 720px) { .input { font-size: 13.5px; } }
+.input:focus { outline: none; border-color: ${c.accent}; }
+textarea.input { font-family: ${theme.font.mono}; white-space: pre; overflow-wrap: normal; overflow-x: auto; }
+
+.field-hint { margin: 0; font-size: 11.5px; color: ${c.muted}; line-height: 1.5; }
+
 /* hormati preferensi pengguna yang sensitif terhadap animasi */
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: .01ms !important; transition-duration: .01ms !important; }

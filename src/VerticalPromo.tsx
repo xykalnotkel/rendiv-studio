@@ -14,6 +14,12 @@ export interface VerticalPromoProps {
   withCaptions?: boolean;
   /** Jumlah kata per potongan caption */
   wordsPerChunk?: number;
+  /**
+   * Timpa isi scene tanpa menyentuh kode.
+   * Bentuknya: { [sceneId]: { field: nilai } } — digabung di atas content.mjs.
+   * Dipakai editor di web dan diteruskan apa adanya ke render lewat inputProps.
+   */
+  overrides?: Record<string, Record<string, unknown>>;
 }
 
 /**
@@ -26,6 +32,7 @@ export const VerticalPromo: React.FC<VerticalPromoProps> = ({
   withAudio = true,
   withCaptions = true,
   wordsPerChunk = 3,
+  overrides,
 }) => {
   const frame = useFrame();
   const { durationInFrames } = useCompositionConfig();
@@ -41,11 +48,18 @@ export const VerticalPromo: React.FC<VerticalPromoProps> = ({
     [wordsPerChunk]
   );
 
-  // cocokkan tiap entri timeline dengan isinya berdasarkan id
-  const byId = React.useMemo(
-    () => Object.fromEntries(content.scenes.map((s) => [s.id, s])),
-    []
-  );
+  // cocokkan tiap entri timeline dengan isinya berdasarkan id,
+  // lalu terapkan override dari editor (kalau ada)
+  const byId = React.useMemo(() => {
+    const map = Object.fromEntries(content.scenes.map((s) => [s.id, s]));
+    if (!overrides) return map;
+    for (const [id, patch] of Object.entries(overrides)) {
+      const base = map[id];
+      if (!base || !patch) continue;
+      map[id] = { ...base, data: { ...(base.data ?? {}), ...patch } };
+    }
+    return map;
+  }, [overrides]);
 
   return (
     <CanvasElement id="VerticalPromo">

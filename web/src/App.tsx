@@ -3,6 +3,8 @@ import { Player, type PlayerRef } from '@rendiv/player';
 import { VerticalPromo } from '@video/VerticalPromo';
 import timeline from '@video/generated/timeline.json';
 import { RenderPanel } from './RenderPanel';
+import { EditorPanel } from './EditorPanel';
+import { initialValues, toOverrides } from './editor-schema';
 
 /**
  * Konfigurator + preview.
@@ -26,6 +28,22 @@ export default function App() {
   const [wordsPerChunk, setWordsPerChunk] = React.useState(3);
   const [frame, setFrame] = React.useState(0);
   const [playing, setPlaying] = React.useState(false);
+  const [values, setValues] = React.useState(initialValues);
+
+  const overrides = React.useMemo(() => toOverrides(values), [values]);
+  const dirty = Object.keys(overrides).length > 0;
+
+  const setField = React.useCallback((sceneId: string, key: string, v: string) => {
+    setValues((prev) => ({ ...prev, [sceneId]: { ...prev[sceneId], [key]: v } }));
+  }, []);
+
+  // scene yang sedang diputar — dipakai editor untuk auto-buka bagian terkait
+  const activeSceneId = React.useMemo(() => {
+    const s = timeline.scenes.find(
+      (x) => frame >= x.from && frame < x.from + x.durationInFrames
+    );
+    return s?.id ?? null;
+  }, [frame]);
 
   React.useEffect(() => {
     const p = ref.current;
@@ -44,8 +62,8 @@ export default function App() {
   }, []);
 
   const inputProps = React.useMemo(
-    () => ({ withCaptions, wordsPerChunk, withAudio: true }),
-    [withCaptions, wordsPerChunk]
+    () => ({ withCaptions, wordsPerChunk, withAudio: true, overrides }),
+    [withCaptions, wordsPerChunk, overrides]
   );
 
   return (
@@ -66,6 +84,17 @@ export default function App() {
       <div className="layout">
         {/* ---------- kontrol ---------- */}
         <div className="col-controls">
+          <EditorPanel
+            values={values}
+            onChange={setField}
+            onReset={() => setValues(initialValues())}
+            dirty={dirty}
+            onJump={(f) => ref.current?.seekTo(f)}
+            activeSceneId={activeSceneId}
+          />
+
+          <RenderPanel inputProps={inputProps} />
+
           <section className="panel">
             <span className="panel-label">Caption</span>
             <div className="seg" role="group" aria-label="Tampilkan caption">
@@ -121,7 +150,6 @@ export default function App() {
             </div>
           </section>
 
-          <RenderPanel inputProps={inputProps} />
         </div>
 
         {/* ---------- player ---------- */}
