@@ -1,0 +1,48 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "rendiv-render",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-16",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // Front-end statis (hasil `cd web && npm run build`) dilayani langsung
+  // dari edge — gratis, tanpa membangunkan container.
+  "assets": {
+    "directory": "../web/dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  },
+
+  // Container berisi Chromium + FFmpeg. Inilah yang TIDAK bisa dilakukan
+  // Vercel Function maupun Cloudflare Worker biasa.
+  "containers": [
+    {
+      "class_name": "RenderContainer",
+      "image": "../Dockerfile",
+      // standard-3 = 2 vCPU / 8 GiB / 16 GB disk.
+      // Maksimum yang tersedia adalah standard-4 (4 vCPU / 12 GiB).
+      "instance_type": "standard-3",
+      "max_instances": 5
+    }
+  ],
+
+  "durable_objects": {
+    "bindings": [
+      {
+        "class_name": "RenderContainer",
+        "name": "RENDER_CONTAINER"
+      }
+    ]
+  },
+
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["RenderContainer"]
+    }
+  ],
+
+  "observability": {
+    "enabled": true
+  }
+}

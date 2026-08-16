@@ -1,0 +1,35 @@
+{
+  "name": "demo-rendiv",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "timeline": "node scripts/build-timeline.mjs",
+    "audio": "node scripts/build-audio.mjs",
+    "build:assets": "npm run timeline && npm run audio",
+    "studio": "rendiv studio src/index.tsx --host 0.0.0.0 --port 3000",
+    "render": "node scripts/render.mjs",
+    "still": "rendiv still src/index.tsx VerticalPromo out/still.png",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "worker": "node scripts/render-server.mjs"
+  },
+  "dependencies": {
+    "@rendiv/bundler": "^0.2.6",
+    "@rendiv/captions": "^0.2.6",
+    "@rendiv/cli": "latest",
+    "@rendiv/core": "latest",
+    "@rendiv/effects": "^0.2.6",
+    "@rendiv/player": "^0.2.6",
+    "@rendiv/renderer": "^0.2.6",
+    "@rendiv/shapes": "latest",
+    "@rendiv/text": "latest",
+    "@rendiv/transitions": "^0.2.6",
+    "ffmpeg-static": "^5.3.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.7.0"
+  }
+}

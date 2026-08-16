@@ -1,0 +1,118 @@
+name: Render video
+
+# Dipicu oleh Cloudflare Worker lewat repository_dispatch,
+# atau manual dari tab Actions.
+on:
+  repository_dispatch:
+    types: [render-video]
+  workflow_dispatch:
+    inputs:
+      compositionId:
+        description: Komposisi yang dirender
+        default: VerticalPromo
+        type: string
+
+permissions:
+  contents: write # perlu untuk mengunggah hasil ke Release
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Siapkan variabel job
+        id: vars
+        run: |
+          echo "job_id=${{ github.event.client_payload.jobId || 'manual' }}" >> $GITHUB_OUTPUT
+          echo "comp=${{ github.event.client_payload.compositionId || inputs.compositionId || 'VerticalPromo' }}" >> $GITHUB_OUTPUT
+          echo "callback=${{ github.event.client_payload.callbackUrl }}" >> $GITHUB_OUTPUT
+          echo "run_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_OUTPUT
+
+      - name: Lapor mulai
+        if: steps.vars.outputs.callback != ''
+        continue-on-error: true
+        run: |
+          curl -sf -X PATCH "${{ steps.vars.outputs.callback }}" \
+            -H "authorization: Bearer ${{ secrets.CALLBACK_SECRET }}" \
+            -H "content-type: application/json" \
+            -d '{"status":"running","stage":"setup","progress":0.05,
+                 "message":"Menyiapkan runner…","runUrl":"${{ steps.vars.outputs.run_url }}"}'
+
+      - run: npm ci
+
+      - name: Pasang Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Lapor render dimulai
+        if: steps.vars.outputs.callback != ''
+        continue-on-error: true
+        run: |
+          curl -sf -X PATCH "${{ steps.vars.outputs.callback }}" \
+            -H "authorization: Bearer ${{ secrets.CALLBACK_SECRET }}" \
+            -H "content-type: application/json" \
+            -d '{"stage":"rendering","progress":0.15,"message":"Merender frame…"}'
+
+      - name: Bangun aset (timeline + narasi)
+        run: npm run build:assets
+
+      - name: Render
+        env:
+          COMP: ${{ steps.vars.outputs.comp }}
+          OUT: out/${{ steps.vars.outputs.job_id }}.mp4
+          INPUT_PROPS: ${{ toJSON(github.event.client_payload.inputProps) }}
+        run: npm run render
+
+      - name: Unggah ke Release
+        id: upload
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          FILE="out/${{ steps.vars.outputs.job_id }}.mp4"
+          TAG="render-${{ steps.vars.outputs.job_id }}"
+          BYTES=$(stat -c%s "$FILE")
+
+          gh release create "$TAG" "$FILE" \
+            --title "Render ${{ steps.vars.outputs.job_id }}" \
+            --notes "Komposisi: ${{ steps.vars.outputs.comp }}" \
+            || gh release upload "$TAG" "$FILE" --clobber
+
+          URL="${{ github.server_url }}/${{ github.repository }}/releases/download/$TAG/${{ steps.vars.outputs.job_id }}.mp4"
+          echo "url=$URL"     >> $GITHUB_OUTPUT
+          echo "bytes=$BYTES" >> $GITHUB_OUTPUT
+
+      # cadangan: tetap tersedia sebagai artifact walau Release gagal
+      - uses: actions/upload-artifact@v4
+        with:
+          name: video-${{ steps.vars.outputs.job_id }}
+          path: out/*.mp4
+          retention-days: 7
+
+      - name: Lapor selesai
+        if: steps.vars.outputs.callback != ''
+        continue-on-error: true
+        run: |
+          curl -sf -X PATCH "${{ steps.vars.outputs.callback }}" \
+            -H "authorization: Bearer ${{ secrets.CALLBACK_SECRET }}" \
+            -H "content-type: application/json" \
+            -d '{"status":"done","stage":"done","progress":1,"message":"Selesai",
+                 "videoUrl":"${{ steps.upload.outputs.url }}",
+                 "bytes":${{ steps.upload.outputs.bytes }}}'
+
+      - name: Lapor gagal
+        if: failure() && steps.vars.outputs.callback != ''
+        continue-on-error: true
+        run: |
+          curl -sf -X PATCH "${{ steps.vars.outputs.callback }}" \
+            -H "authorization: Bearer ${{ secrets.CALLBACK_SECRET }}" \
+            -H "content-type: application/json" \
+            -d '{"status":"error","stage":"error",
+                 "error":"Render gagal — lihat log Actions",
+                 "runUrl":"${{ steps.vars.outputs.run_url }}"}'

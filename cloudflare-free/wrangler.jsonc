@@ -1,0 +1,27 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "rendiv-studio",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-16",
+
+  // Static Assets: gratis & tak terbatas di Workers Free.
+  // Worker hanya menangani /api/*, sisanya dilayani langsung dari edge.
+  "assets": {
+    "directory": "../web/dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  },
+
+  // KV free tier: 100rb baca + 1rb tulis per hari. Cukup banyak untuk antrian job.
+  // ID diisi otomatis oleh wrangler saat deploy pertama (automatic provisioning).
+  "kv_namespaces": [
+    { "binding": "JOBS" }
+  ],
+
+  "vars": {
+    // diisi saat setup: "owner/repo" tempat workflow render berada
+    "GITHUB_REPO": ""
+  },
+
+  "observability": { "enabled": true }
+}

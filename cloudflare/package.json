@@ -1,0 +1,19 @@
+{
+  "name": "rendiv-cloudflare",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "predeploy": "cd ../web && npm install && npm run build",
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "tail": "wrangler tail"
+  },
+  "dependencies": {
+    "@cloudflare/containers": "^0.3.7"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260816.1",
+    "typescript": "^5.7.0",
+    "wrangler": "^4.123.0"
+  }
+}

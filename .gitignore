@@ -1,0 +1,9 @@
+node_modules/
+dist/
+out/
+.wrangler/
+.DS_Store
+*.log
+# aset hasil generate — dibuat ulang oleh `npm run build:assets`
+src/generated/
+public/narration.mp3

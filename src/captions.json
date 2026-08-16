@@ -1,0 +1,352 @@
+[
+ {
+  "text": "Bayangkan bikin video cuma dengan menulis kode. Tanpa timeline. Tanpa drag and drop.",
+  "startMs": 800,
+  "endMs": 7750,
+  "words": [
+   {
+    "text": "Bayangkan",
+    "startMs": 800,
+    "endMs": 1580
+   },
+   {
+    "text": "bikin",
+    "startMs": 1580,
+    "endMs": 2077
+   },
+   {
+    "text": "video",
+    "startMs": 2077,
+    "endMs": 2573
+   },
+   {
+    "text": "cuma",
+    "startMs": 2573,
+    "endMs": 2998
+   },
+   {
+    "text": "dengan",
+    "startMs": 2998,
+    "endMs": 3566
+   },
+   {
+    "text": "menulis",
+    "startMs": 3566,
+    "endMs": 4204
+   },
+   {
+    "text": "kode.",
+    "startMs": 4204,
+    "endMs": 4701
+   },
+   {
+    "text": "Tanpa",
+    "startMs": 4701,
+    "endMs": 5197
+   },
+   {
+    "text": "timeline.",
+    "startMs": 5197,
+    "endMs": 5977
+   },
+   {
+    "text": "Tanpa",
+    "startMs": 5977,
+    "endMs": 6473
+   },
+   {
+    "text": "drag",
+    "startMs": 6473,
+    "endMs": 6899
+   },
+   {
+    "text": "and",
+    "startMs": 6899,
+    "endMs": 7254
+   },
+   {
+    "text": "drop.",
+    "startMs": 7254,
+    "endMs": 7750
+   }
+  ]
+ },
+ {
+  "text": "Setiap video adalah komponen React. Satu fungsi murni dari waktu.",
+  "startMs": 8150,
+  "endMs": 13790,
+  "words": [
+   {
+    "text": "Setiap",
+    "startMs": 8150,
+    "endMs": 8744
+   },
+   {
+    "text": "video",
+    "startMs": 8744,
+    "endMs": 9263
+   },
+   {
+    "text": "adalah",
+    "startMs": 9263,
+    "endMs": 9857
+   },
+   {
+    "text": "komponen",
+    "startMs": 9857,
+    "endMs": 10599
+   },
+   {
+    "text": "React.",
+    "startMs": 10599,
+    "endMs": 11193
+   },
+   {
+    "text": "Satu",
+    "startMs": 11193,
+    "endMs": 11638
+   },
+   {
+    "text": "fungsi",
+    "startMs": 11638,
+    "endMs": 12232
+   },
+   {
+    "text": "murni",
+    "startMs": 12232,
+    "endMs": 12751
+   },
+   {
+    "text": "dari",
+    "startMs": 12751,
+    "endMs": 13196
+   },
+   {
+    "text": "waktu.",
+    "startMs": 13196,
+    "endMs": 13790
+   }
+  ]
+ },
+ {
+  "text": "Ganti satu angka, seluruh video ikut berubah. Semuanya bisa masuk git, bisa di-review, bisa diotomasi.",
+  "startMs": 14190,
+  "endMs": 22030,
+  "words": [
+   {
+    "text": "Ganti",
+    "startMs": 14190,
+    "endMs": 14655
+   },
+   {
+    "text": "satu",
+    "startMs": 14655,
+    "endMs": 15054
+   },
+   {
+    "text": "angka,",
+    "startMs": 15054,
+    "endMs": 15585
+   },
+   {
+    "text": "seluruh",
+    "startMs": 15585,
+    "endMs": 16183
+   },
+   {
+    "text": "video",
+    "startMs": 16183,
+    "endMs": 16648
+   },
+   {
+    "text": "ikut",
+    "startMs": 16648,
+    "endMs": 17047
+   },
+   {
+    "text": "berubah.",
+    "startMs": 17047,
+    "endMs": 17711
+   },
+   {
+    "text": "Semuanya",
+    "startMs": 17711,
+    "endMs": 18376
+   },
+   {
+    "text": "bisa",
+    "startMs": 18376,
+    "endMs": 18774
+   },
+   {
+    "text": "masuk",
+    "startMs": 18774,
+    "endMs": 19239
+   },
+   {
+    "text": "git,",
+    "startMs": 19239,
+    "endMs": 19638
+   },
+   {
+    "text": "bisa",
+    "startMs": 19638,
+    "endMs": 20037
+   },
+   {
+    "text": "di-review,",
+    "startMs": 20037,
+    "endMs": 20834
+   },
+   {
+    "text": "bisa",
+    "startMs": 20834,
+    "endMs": 21233
+   },
+   {
+    "text": "diotomasi.",
+    "startMs": 21233,
+    "endMs": 22030
+   }
+  ]
+ },
+ {
+  "text": "Dan karena isinya cuma kode, AI bisa menulisnya untukmu. Kasih prompt, dapat video jadi.",
+  "startMs": 22430,
+  "endMs": 29140,
+  "words": [
+   {
+    "text": "Dan",
+    "startMs": 22430,
+    "endMs": 22756
+   },
+   {
+    "text": "karena",
+    "startMs": 22756,
+    "endMs": 23277
+   },
+   {
+    "text": "isinya",
+    "startMs": 23277,
+    "endMs": 23798
+   },
+   {
+    "text": "cuma",
+    "startMs": 23798,
+    "endMs": 24189
+   },
+   {
+    "text": "kode,",
+    "startMs": 24189,
+    "endMs": 24645
+   },
+   {
+    "text": "AI",
+    "startMs": 24645,
+    "endMs": 24906
+   },
+   {
+    "text": "bisa",
+    "startMs": 24906,
+    "endMs": 25296
+   },
+   {
+    "text": "menulisnya",
+    "startMs": 25296,
+    "endMs": 26078
+   },
+   {
+    "text": "untukmu.",
+    "startMs": 26078,
+    "endMs": 26730
+   },
+   {
+    "text": "Kasih",
+    "startMs": 26730,
+    "endMs": 27186
+   },
+   {
+    "text": "prompt,",
+    "startMs": 27186,
+    "endMs": 27772
+   },
+   {
+    "text": "dapat",
+    "startMs": 27772,
+    "endMs": 28228
+   },
+   {
+    "text": "video",
+    "startMs": 28228,
+    "endMs": 28684
+   },
+   {
+    "text": "jadi.",
+    "startMs": 28684,
+    "endMs": 29140
+   }
+  ]
+ },
+ {
+  "text": "Namanya Rendiv. Gratis, open source, dan siap kamu coba hari ini.",
+  "startMs": 29540,
+  "endMs": 35760,
+  "words": [
+   {
+    "text": "Namanya",
+    "startMs": 29540,
+    "endMs": 30267
+   },
+   {
+    "text": "Rendiv.",
+    "startMs": 30267,
+    "endMs": 30994
+   },
+   {
+    "text": "Gratis,",
+    "startMs": 30994,
+    "endMs": 31721
+   },
+   {
+    "text": "open",
+    "startMs": 31721,
+    "endMs": 32206
+   },
+   {
+    "text": "source,",
+    "startMs": 32206,
+    "endMs": 32933
+   },
+   {
+    "text": "dan",
+    "startMs": 32933,
+    "endMs": 33337
+   },
+   {
+    "text": "siap",
+    "startMs": 33337,
+    "endMs": 33821
+   },
+   {
+    "text": "kamu",
+    "startMs": 33821,
+    "endMs": 34306
+   },
+   {
+    "text": "coba",
+    "startMs": 34306,
+    "endMs": 34791
+   },
+   {
+    "text": "hari",
+    "startMs": 34791,
+    "endMs": 35275
+   },
+   {
+    "text": "ini.",
+    "startMs": 35275,
+    "endMs": 35760
+   }
+  ]
+ }
+]
