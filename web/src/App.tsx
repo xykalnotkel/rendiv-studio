@@ -2,48 +2,18 @@ import React from 'react';
 import { Player, type PlayerRef } from '@rendiv/player';
 import { VerticalPromo } from '@video/VerticalPromo';
 import timeline from '@video/generated/timeline.json';
-import { theme } from '@video/config/theme';
 import { RenderPanel } from './RenderPanel';
 
 /**
  * Konfigurator + preview.
  *
- * PENTING: halaman ini 100% statis — Player memutar komposisi React
- * langsung di browser, tanpa server sama sekali. Inilah bagian yang
- * bisa di-deploy ke Vercel apa adanya.
+ * Semua styling responsif ada di styles.ts sebagai CSS asli (media query,
+ * clamp, focus-visible) — inline style tidak mendukung itu.
  *
- * Yang TIDAK bisa di sini: menghasilkan file MP4. Itu butuh Chromium
- * headless + FFmpeg, lihat catatan di panel "Render".
+ * Layout:
+ *   < 720px  → satu kolom, player di atas agar langsung terlihat
+ *   ≥ 720px  → dua kolom, kontrol di kiri
  */
-
-const c = theme.color;
-
-const panel: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.04)',
-  border: '1px solid rgba(255,255,255,0.09)',
-  borderRadius: 16,
-  padding: 20,
-};
-
-const label: React.CSSProperties = {
-  display: 'block',
-  fontSize: 12,
-  letterSpacing: 0.6,
-  textTransform: 'uppercase',
-  color: c.muted,
-  marginBottom: 8,
-};
-
-const btn = (active = false): React.CSSProperties => ({
-  padding: '9px 16px',
-  borderRadius: 999,
-  border: `1px solid ${active ? c.accent : 'rgba(255,255,255,0.14)'}`,
-  background: active ? c.accent : 'transparent',
-  color: active ? '#05070c' : '#e6edf3',
-  fontWeight: 600,
-  fontSize: 14,
-  cursor: 'pointer',
-});
 
 function fmt(frame: number, fps: number) {
   const s = frame / fps;
@@ -79,114 +49,108 @@ export default function App() {
   );
 
   return (
-    <div style={{ maxWidth: 1180, margin: '0 auto', padding: '32px 24px 80px' }}>
-      <header style={{ marginBottom: 28 }}>
-        <h1 style={{ margin: 0, fontSize: 30, letterSpacing: -0.5 }}>
-          Rendiv <span style={{ color: c.muted, fontWeight: 400 }}>— preview & konfigurator</span>
+    <div className="page">
+      <header>
+        <h1 className="head-title">
+          Rendiv <span className="dim">— preview &amp; konfigurator</span>
         </h1>
-        <p style={{ color: c.muted, marginTop: 8, lineHeight: 1.6, maxWidth: 720 }}>
+        <p className="head-sub">
           Komposisi React yang sama dipakai untuk preview di browser <em>dan</em> untuk render MP4.
-          Situs ini berjalan di Cloudflare Workers; rendernya dikerjakan GitHub Actions.
+          <span className="long">
+            {' '}
+            Situs berjalan di Cloudflare Workers; rendernya dikerjakan GitHub Actions.
+          </span>
         </p>
       </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,340px) 1fr', gap: 24, alignItems: 'start' }}>
-        {/* ---------- panel kiri: kontrol ---------- */}
-        <div style={{ display: 'grid', gap: 16 }}>
-          <div style={panel}>
-            <span style={label}>Caption</span>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-              <button style={btn(withCaptions)} onClick={() => setWithCaptions(true)}>
+      <div className="layout">
+        {/* ---------- kontrol ---------- */}
+        <div className="col-controls">
+          <section className="panel">
+            <span className="panel-label">Caption</span>
+            <div className="seg" role="group" aria-label="Tampilkan caption">
+              <button
+                className={`btn ${withCaptions ? 'btn--on' : ''}`}
+                aria-pressed={withCaptions}
+                onClick={() => setWithCaptions(true)}
+              >
                 Tampil
               </button>
-              <button style={btn(!withCaptions)} onClick={() => setWithCaptions(false)}>
+              <button
+                className={`btn ${!withCaptions ? 'btn--on' : ''}`}
+                aria-pressed={!withCaptions}
+                onClick={() => setWithCaptions(false)}
+              >
                 Sembunyikan
               </button>
             </div>
 
-            <span style={label}>Kata per potongan: {wordsPerChunk}</span>
+            <label className="panel-label" htmlFor="wpc">
+              Kata per potongan: {wordsPerChunk}
+            </label>
             <input
+              id="wpc"
+              className="range"
               type="range"
               min={1}
               max={6}
               value={wordsPerChunk}
               onChange={(e) => setWordsPerChunk(Number(e.target.value))}
-              style={{ width: '100%', accentColor: c.accent }}
             />
-          </div>
+          </section>
 
-          <div style={panel}>
-            <span style={label}>Lompat ke scene</span>
-            <div style={{ display: 'grid', gap: 8 }}>
+          <section className="panel">
+            <span className="panel-label">Lompat ke scene</span>
+            <div className="scene-list">
               {timeline.scenes.map((s, i) => {
                 const active = frame >= s.from && frame < s.from + s.durationInFrames;
                 return (
                   <button
                     key={s.id}
+                    className={`btn btn--scene ${active ? 'btn--on' : ''}`}
+                    aria-current={active || undefined}
                     onClick={() => ref.current?.seekTo(s.from)}
-                    style={{
-                      ...btn(active),
-                      borderRadius: 10,
-                      textAlign: 'left',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                    }}
                   >
                     <span>
                       {i + 1}. {s.kind}
                     </span>
-                    <span style={{ opacity: 0.7, fontVariantNumeric: 'tabular-nums' }}>
-                      {fmt(s.from, timeline.fps)}
-                    </span>
+                    <span className="time">{fmt(s.from, timeline.fps)}</span>
                   </button>
                 );
               })}
             </div>
-          </div>
+          </section>
 
           <RenderPanel inputProps={inputProps} />
         </div>
 
-        {/* ---------- panel kanan: player ---------- */}
-        <div style={{ ...panel, padding: 16 }}>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              background: '#000',
-              borderRadius: 12,
-              overflow: 'hidden',
-            }}
-          >
-            <Player
-              ref={ref}
-              component={VerticalPromo as never}
-              inputProps={inputProps}
-              durationInFrames={timeline.durationInFrames}
-              fps={timeline.fps}
-              compositionWidth={timeline.width}
-              compositionHeight={timeline.height}
-              controls
-              loop
-              style={{ width: '100%', maxWidth: 380, aspectRatio: '9 / 16' }}
-            />
-          </div>
+        {/* ---------- player ---------- */}
+        <div className="col-player">
+          <section className="panel" style={{ padding: 'clamp(10px, 2.5vw, 16px)' }}>
+            <div className="player-box">
+              <div className="player">
+                <Player
+                  ref={ref}
+                  component={VerticalPromo as never}
+                  inputProps={inputProps}
+                  durationInFrames={timeline.durationInFrames}
+                  fps={timeline.fps}
+                  compositionWidth={timeline.width}
+                  compositionHeight={timeline.height}
+                  controls
+                  loop
+                  style={{ width: '100%', height: '100%' }}
+                />
+              </div>
+            </div>
 
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 14,
-              marginTop: 14,
-              color: c.muted,
-              fontSize: 13,
-            }}
-          >
-            <span style={{ fontVariantNumeric: 'tabular-nums' }}>
-              frame {frame} / {timeline.durationInFrames} · {fmt(frame, timeline.fps)}
-            </span>
-            <span style={{ marginLeft: 'auto' }}>{playing ? '▶ playing' : '⏸ paused'}</span>
-          </div>
+            <div className="player-meta">
+              <span className="num">
+                frame {frame} / {timeline.durationInFrames} · {fmt(frame, timeline.fps)}
+              </span>
+              <span className="right">{playing ? '▶ playing' : '⏸ paused'}</span>
+            </div>
+          </section>
         </div>
       </div>
     </div>

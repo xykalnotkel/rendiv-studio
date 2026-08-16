@@ -1,18 +1,13 @@
 import React from 'react';
-import { theme } from '@video/config/theme';
-
-const c = theme.color;
 
 /**
- * Panel render — mode publik.
+ * Panel render — memicu GitHub Actions lewat Cloudflare Worker.
  *
- * Situs ini statis (Cloudflare Workers Free), tapi tombol render tetap
- * berfungsi untuk siapa saja tanpa perlu komputer siapa pun menyala:
+ *   Browser → /api/jobs → Worker (KV) → repository_dispatch
+ *           → GitHub Actions render → unggah ke Release
+ *           → Worker dapat callback → panel ini polling statusnya
  *
- *   Browser → Worker /api/jobs → GitHub Actions (runner gratis)
- *           → hasil diunggah ke GitHub Release → link unduhan
- *
- * Worker menyimpan status job di KV, panel ini tinggal polling.
+ * Styling ada di styles.ts supaya responsif (media query + clamp).
  */
 
 type Job = {
@@ -27,29 +22,12 @@ type Job = {
   runUrl?: string;
 };
 
-const panel: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.04)',
-  border: '1px solid rgba(255,255,255,0.09)',
-  borderRadius: 16,
-  padding: 20,
-};
-
-const labelStyle: React.CSSProperties = {
-  display: 'block',
-  fontSize: 12,
-  letterSpacing: 0.6,
-  textTransform: 'uppercase',
-  color: c.muted,
-  marginBottom: 10,
-};
-
 export const RenderPanel: React.FC<{ inputProps: Record<string, unknown> }> = ({ inputProps }) => {
   const [job, setJob] = React.useState<Job | null>(null);
   const [busy, setBusy] = React.useState(false);
   const [ready, setReady] = React.useState<boolean | null>(null);
   const [note, setNote] = React.useState('');
 
-  // cek apakah render sudah dikonfigurasi di server
   React.useEffect(() => {
     fetch('/api/health')
       .then((r) => r.json())
@@ -57,7 +35,6 @@ export const RenderPanel: React.FC<{ inputProps: Record<string, unknown> }> = ({
       .catch(() => setReady(false));
   }, []);
 
-  // polling status job
   React.useEffect(() => {
     if (!job || job.status === 'done' || job.status === 'error') return;
     const t = setInterval(async () => {
@@ -65,9 +42,9 @@ export const RenderPanel: React.FC<{ inputProps: Record<string, unknown> }> = ({
         const r = await fetch(`/api/jobs/${job.id}`);
         if (r.ok) setJob(await r.json());
       } catch {
-        /* coba lagi */
+        /* coba lagi di tick berikutnya */
       }
-    }, 3000);
+    }, 4000);
     return () => clearInterval(t);
   }, [job]);
 
@@ -91,27 +68,14 @@ export const RenderPanel: React.FC<{ inputProps: Record<string, unknown> }> = ({
   }
 
   const pct = Math.round((job?.progress ?? 0) * 100);
-  const active = job && (job.status === 'queued' || job.status === 'running');
+  const active = Boolean(job && (job.status === 'queued' || job.status === 'running'));
+  const disabled = busy || active || ready === false;
 
   return (
-    <div style={{ ...panel, borderColor: 'rgba(88,166,255,0.28)' }}>
-      <span style={{ ...labelStyle, color: c.accent }}>Render MP4</span>
+    <section className="panel panel--accent">
+      <span className="panel-label panel-label--accent">Render MP4</span>
 
-      <button
-        onClick={start}
-        disabled={busy || !!active || ready === false}
-        style={{
-          width: '100%',
-          padding: '12px 16px',
-          borderRadius: 10,
-          border: 'none',
-          background: active || ready === false ? 'rgba(255,255,255,0.12)' : c.accent,
-          color: active || ready === false ? c.subtle : '#05070c',
-          fontWeight: 700,
-          fontSize: 14,
-          cursor: active || ready === false ? 'default' : 'pointer',
-        }}
-      >
+      <button className="btn btn--primary btn--block" onClick={start} disabled={disabled}>
         {active
           ? `Merender… ${pct}%`
           : busy
@@ -124,37 +88,23 @@ export const RenderPanel: React.FC<{ inputProps: Record<string, unknown> }> = ({
       {active && (
         <>
           <div
-            style={{
-              height: 8,
-              borderRadius: 4,
-              background: 'rgba(255,255,255,0.1)',
-              overflow: 'hidden',
-              marginTop: 12,
-            }}
+            className="bar"
+            role="progressbar"
+            aria-valuenow={pct}
+            aria-valuemin={0}
+            aria-valuemax={100}
           >
-            <div
-              style={{
-                width: `${Math.max(pct, 4)}%`,
-                height: '100%',
-                background: c.accent,
-                transition: 'width .6s ease',
-              }}
-            />
+            <i style={{ width: `${Math.max(pct, 4)}%` }} />
           </div>
-          <p style={{ margin: '8px 0 0', fontSize: 12.5, color: c.muted }}>
+          <p className="note">
             {job?.stage} · {job?.message}
           </p>
-          <p style={{ margin: '6px 0 0', fontSize: 11.5, color: c.muted, lineHeight: 1.5 }}>
-            Dirender di GitHub Actions — biasanya 3–6 menit. Boleh tutup halaman ini;
-            hasilnya tetap tersimpan.
+          <p className="note">
+            Dirender di GitHub Actions — sekitar 7 menit. Halaman boleh ditutup, hasilnya tetap
+            tersimpan.
           </p>
           {job?.runUrl && (
-            <a
-              href={job.runUrl}
-              target="_blank"
-              rel="noreferrer"
-              style={{ fontSize: 11.5, color: c.accent }}
-            >
+            <a className="link note" href={job.runUrl} target="_blank" rel="noreferrer">
               lihat log →
             </a>
           )}
@@ -163,36 +113,23 @@ export const RenderPanel: React.FC<{ inputProps: Record<string, unknown> }> = ({
 
       {job?.status === 'done' && job.videoUrl && (
         <div style={{ marginTop: 12 }}>
-          <a
-            href={job.videoUrl}
-            style={{
-              display: 'block',
-              textAlign: 'center',
-              padding: '11px 16px',
-              borderRadius: 10,
-              background: c.success,
-              color: '#05070c',
-              fontWeight: 700,
-              fontSize: 14,
-              textDecoration: 'none',
-            }}
-          >
+          <a className="dl" href={job.videoUrl}>
             ⬇ Unduh MP4
             {job.bytes ? ` (${(job.bytes / 1024 / 1024).toFixed(1)} MB)` : ''}
           </a>
-          <p style={{ margin: '8px 0 0', fontSize: 11.5, color: c.muted }}>
+          <p className="note">
             tautan publik · job <code>{job.id}</code>
           </p>
         </div>
       )}
 
       {job?.status === 'error' && (
-        <p style={{ margin: '10px 0 0', fontSize: 12.5, color: c.danger, lineHeight: 1.5 }}>
+        <p className="note note--err">
           Gagal: {job.error}
           {job.runUrl && (
             <>
               {' '}
-              <a href={job.runUrl} target="_blank" rel="noreferrer" style={{ color: c.accent }}>
+              <a className="link" href={job.runUrl} target="_blank" rel="noreferrer">
                 lihat log
               </a>
             </>
@@ -201,15 +138,13 @@ export const RenderPanel: React.FC<{ inputProps: Record<string, unknown> }> = ({
       )}
 
       {ready === false && (
-        <p style={{ margin: '10px 0 0', fontSize: 12.5, color: c.subtle, lineHeight: 1.6 }}>
+        <p className="note note--warn">
           Backend render belum tersambung. Set <code>GITHUB_REPO</code> dan secret{' '}
           <code>GITHUB_TOKEN</code> di Worker — lihat <code>DEPLOY-PUBLIK.md</code>.
         </p>
       )}
 
-      {note && (
-        <p style={{ margin: '10px 0 0', fontSize: 12, color: c.danger, lineHeight: 1.5 }}>{note}</p>
-      )}
-    </div>
+      {note && <p className="note note--err">{note}</p>}
+    </section>
   );
 };

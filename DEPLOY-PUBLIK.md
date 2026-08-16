@@ -41,7 +41,7 @@ Setup selesai dan sudah diuji end-to-end:
 
 | Komponen | Status |
 |---|---|
-| Situs | https://rendiv-studio.akuntiktok76y.workers.dev |
+| Situs | **https://video.xystudio.my.id** (+ cadangan `rendiv-studio.akuntiktok76y.workers.dev`) |
 | Repo | https://github.com/xykalnotkel/rendiv-studio (publik) |
 | Worker → GitHub | `configured: true` |
 | Secret `GITHUB_TOKEN` | terpasang di Worker |
@@ -102,3 +102,30 @@ Token Cloudflare & GitHub tersimpan sebagai teks biasa di `/home/user/uploads/`
 dan **tidak** ikut ter-commit ke git (sudah diverifikasi). Token GitHub yang
 dipakai punya scope sangat luas (`repo`, `admin:org`, `delete_repo`, dll) —
 kalau nanti workspace ini dibagikan, ganti dengan token ber-scope `repo` saja.
+
+---
+
+## UI responsif
+
+Diuji otomatis di 6 ukuran layar (`node scripts/test/responsive.mjs <url>`):
+
+| Perangkat | Layout | Hasil |
+|---|---|---|
+| iPhone SE 375×667 | 1 kolom | ✓ |
+| iPhone 14 Pro 393×852 | 1 kolom | ✓ |
+| Android 412×915 | 1 kolom | ✓ |
+| Tablet 768×1024 | 2 kolom | ✓ |
+| Laptop 1280×800 | 2 kolom | ✓ |
+| Desktop 1920×1080 | 2 kolom | ✓ |
+
+Yang dicek: tidak ada scroll horizontal, tidak ada tombol < 38px, tidak ada
+error konsol, dan player memutar normal.
+
+Catatan teknis:
+- Di ponsel **player ditaruh di atas** (`order`) agar langsung terlihat tanpa scroll.
+- Grid item diberi `min-width: 0` — tanpa ini `min-width:auto` bawaan membuat
+  kolom melar dan memicu overflow 18px di layar 412px.
+- Tombol kontrol bawaan `<Player>` hanya 24×20px; diperbesar jadi 40×40 lewat CSS
+  agar nyaman disentuh.
+- Ukuran font & padding pakai `clamp()` supaya menskala mulus, bukan meloncat.
+- `100dvh` dipakai agar tinggi player tepat walau bar browser mobile muncul-hilang.

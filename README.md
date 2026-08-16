@@ -61,7 +61,8 @@ otomatis menyusut dan scene sesudahnya bergeser.
 
 ## Deploy
 
-**Live:** https://rendiv-studio.akuntiktok76y.workers.dev
+**Live:** https://video.xystudio.my.id  
+**Cadangan:** https://rendiv-studio.akuntiktok76y.workers.dev
 **Repo:** https://github.com/xykalnotkel/rendiv-studio
 
 Render publik sudah aktif — klik tombol di situs, video dirender GitHub Actions

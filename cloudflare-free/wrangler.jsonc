@@ -4,6 +4,10 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-08-16",
 
+  // Pertahankan URL *.workers.dev sebagai cadangan; tanpa baris ini
+  // wrangler otomatis MENONAKTIFKANNYA saat routes custom domain dipakai.
+  "workers_dev": true,
+
   // Static Assets: gratis & tak terbatas di Workers Free.
   // Worker hanya menangani /api/*, sisanya dilayani langsung dari edge.
   "assets": {
@@ -22,6 +26,12 @@
     // diisi saat setup: "owner/repo" tempat workflow render berada
     "GITHUB_REPO": "xykalnotkel/rendiv-studio"
   },
+
+  // Domain custom. Cloudflare otomatis membuat record DNS + sertifikat SSL.
+  // Subdomain workers.dev tetap aktif sebagai cadangan.
+  "routes": [
+    { "pattern": "video.xystudio.my.id", "custom_domain": true }
+  ],
 
   "observability": { "enabled": true }
 }
