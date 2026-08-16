@@ -85,8 +85,8 @@ export default function App() {
           Rendiv <span style={{ color: c.muted, fontWeight: 400 }}>— preview & konfigurator</span>
         </h1>
         <p style={{ color: c.muted, marginTop: 8, lineHeight: 1.6, maxWidth: 720 }}>
-          Komposisi React yang sama dipakai untuk preview di browser <em>dan</em> untuk render MP4 di
-          server. Halaman ini sepenuhnya statis — bisa di-deploy ke Vercel tanpa backend.
+          Komposisi React yang sama dipakai untuk preview di browser <em>dan</em> untuk render MP4.
+          Situs ini berjalan di Cloudflare Workers; rendernya dikerjakan GitHub Actions.
         </p>
       </header>
 
