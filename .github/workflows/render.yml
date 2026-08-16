@@ -40,7 +40,7 @@ jobs:
         if: steps.vars.outputs.callback != ''
         continue-on-error: true
         run: |
-          curl -sf -X PATCH "${{ steps.vars.outputs.callback }}" \
+          curl -sS -o /dev/null -w "callback HTTP %{http_code}\n" -X PATCH "${{ steps.vars.outputs.callback }}" \
             -H "authorization: Bearer ${{ secrets.CALLBACK_SECRET }}" \
             -H "content-type: application/json" \
             -d '{"status":"running","stage":"setup","progress":0.05,
@@ -55,10 +55,10 @@ jobs:
         if: steps.vars.outputs.callback != ''
         continue-on-error: true
         run: |
-          curl -sf -X PATCH "${{ steps.vars.outputs.callback }}" \
+          curl -sS -o /dev/null -w "callback HTTP %{http_code}\n" -X PATCH "${{ steps.vars.outputs.callback }}" \
             -H "authorization: Bearer ${{ secrets.CALLBACK_SECRET }}" \
             -H "content-type: application/json" \
-            -d '{"stage":"rendering","progress":0.15,"message":"Merender frame…"}'
+            -d '{"stage":"rendering","progress":0.2,"message":"Merender 1109 frame di runner…"}'
 
       - name: Bangun aset (timeline + narasi)
         run: npm run build:assets
@@ -99,7 +99,7 @@ jobs:
         if: steps.vars.outputs.callback != ''
         continue-on-error: true
         run: |
-          curl -sf -X PATCH "${{ steps.vars.outputs.callback }}" \
+          curl -sS -o /dev/null -w "callback HTTP %{http_code}\n" -X PATCH "${{ steps.vars.outputs.callback }}" \
             -H "authorization: Bearer ${{ secrets.CALLBACK_SECRET }}" \
             -H "content-type: application/json" \
             -d '{"status":"done","stage":"done","progress":1,"message":"Selesai",
@@ -110,7 +110,7 @@ jobs:
         if: failure() && steps.vars.outputs.callback != ''
         continue-on-error: true
         run: |
-          curl -sf -X PATCH "${{ steps.vars.outputs.callback }}" \
+          curl -sS -o /dev/null -w "callback HTTP %{http_code}\n" -X PATCH "${{ steps.vars.outputs.callback }}" \
             -H "authorization: Bearer ${{ secrets.CALLBACK_SECRET }}" \
             -H "content-type: application/json" \
             -d '{"status":"error","stage":"error",
