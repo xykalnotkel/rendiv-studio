@@ -94,6 +94,9 @@ jobs:
             --narration "$(cat /tmp/narration.json)"
 
       - name: Bangun timeline + audio gabungan
+        env:
+          # timeline & caption harus memakai teks narasi yang sama dengan TTS
+          NARRATION_FILE: /tmp/narration.json
         run: npm run build:assets
 
       # ---------- render ----------

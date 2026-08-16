@@ -65,6 +65,19 @@ async function main() {
   // jadi konten dibaca dari JSON hasil ekspor build-content.
   const { content } = await import('../src/config/content.mjs');
 
+  // Narasi bisa ditimpa dari CI (harus SAMA dengan yang dipakai tts.py),
+  // kalau tidak caption akan menampilkan teks lama sementara audionya baru.
+  let narrationOverride = {};
+  const narFile = process.env.NARRATION_FILE;
+  if (narFile && fs.existsSync(narFile)) {
+    try {
+      const parsed = JSON.parse(fs.readFileSync(narFile, 'utf8'));
+      if (parsed && typeof parsed === 'object') narrationOverride = parsed;
+    } catch {
+      console.warn('! NARRATION_FILE bukan JSON valid, diabaikan');
+    }
+  }
+
   const scenes = [];
   const captions = [];
   let cursor = LEAD_IN;
@@ -75,6 +88,7 @@ async function main() {
       throw new Error(`Audio hilang: ${file}\nJalankan generate TTS dulu untuk scene "${scene.id}".`);
     }
     const dur = await durationOf(file);
+    const narration = narrationOverride[scene.id]?.trim() || scene.narration;
 
     scenes.push({
       id: scene.id,
@@ -86,10 +100,10 @@ async function main() {
     });
 
     captions.push({
-      text: scene.narration,
+      text: narration,
       startMs: Math.round(cursor * 1000),
       endMs: Math.round((cursor + dur) * 1000),
-      words: wordTimings(scene.narration, cursor, dur),
+      words: wordTimings(narration, cursor, dur),
     });
 
     cursor += dur + GAP;

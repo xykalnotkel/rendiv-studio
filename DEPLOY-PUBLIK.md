@@ -156,3 +156,45 @@ narasi audio yang sudah direkam.
    luar 200, dari runner 403. Solusi: `CALLBACK_ORIGIN` mengarahkan callback ke
    `*.workers.dev` yang tidak melewati WAF zona. Pengunjung tetap memakai
    domain custom.
+
+---
+
+## Preset & narasi dari web
+
+### Tema warna (5)
+Midnight · Sunset · Forest · Grape · Mono — mengganti latar, warna aksen,
+bintang, tombol CTA, dan sorotan caption sekaligus.
+
+### Gaya subtitle (7)
+| Preset | Efek |
+|---|---|
+| Highlight | kata aktif berwarna aksen |
+| Pop | kata aktif membesar mengikuti ucapan |
+| Karaoke | kata terlewat meredup |
+| Bounce | kata aktif memantul (spring) |
+| Typewriter | muncul huruf demi huruf + kursor |
+| Boxed | kata aktif berlatar warna |
+| Wave | kata aktif melayang naik-turun |
+
+Plus posisi (atas/tengah/bawah), ukuran font 40–92px, dan 1–6 kata per potongan.
+
+### Narasi suara
+Teks narasi tiap scene bisa diketik ulang di editor. Saat render, GitHub Actions
+membuat ulang suaranya dengan **edge-tts** (gratis, tanpa API key):
+
+- 2 suara Indonesia: **Gadis** (perempuan) dan **Ardi** (laki-laki)
+- 3 kecepatan: pelan / normal / cepat
+
+Setelah TTS, `build-timeline.mjs` mengukur durasi audio baru dan **durasi tiap
+scene menyesuaikan sendiri** — terbukti: narasi lebih panjang membuat video
+1109 → 1051 frame dengan semua scene bergeser otomatis.
+
+### Progress per-frame
+`render.mjs` melapor ke Worker setiap ~12 detik, jadi progress bar bergerak
+halus (`21/1051 frame` → `1029/1051 frame`), bukan meloncat 20% → 100%.
+
+### Bug yang ditemukan saat pengujian
+**Caption tidak ikut narasi baru.** `build-timeline.mjs` membaca teks dari
+`content.mjs`, sementara TTS memakai teks baru — akibatnya audio berkata A tapi
+subtitle menampilkan B. Diperbaiki dengan env `NARRATION_FILE` yang dibaca
+kedua-duanya.
