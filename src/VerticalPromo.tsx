@@ -1,10 +1,20 @@
 import React from 'react';
-import { Fill, CanvasElement, Sequence, Audio, staticFile, useFrame, useCompositionConfig, interpolate } from '@rendiv/core';
+import {
+  Fill,
+  CanvasElement,
+  Sequence,
+  Audio,
+  staticFile,
+  useFrame,
+  useCompositionConfig,
+  interpolate,
+} from '@rendiv/core';
 import { Backdrop } from './components/Backdrop';
 import { Captions, buildChunks, type CaptionLine } from './components/Captions';
-import { Scene } from './scenes';
+import { Scene, AccentContext } from './scenes';
 import { content } from './config/content';
 import { theme } from './config/theme';
+import { themeById, type CaptionAnim, type CaptionPos } from './config/presets';
 import timeline from './generated/timeline.json';
 
 export interface VerticalPromoProps {
@@ -17,15 +27,30 @@ export interface VerticalPromoProps {
   /**
    * Timpa isi scene tanpa menyentuh kode.
    * Bentuknya: { [sceneId]: { field: nilai } } — digabung di atas content.mjs.
-   * Dipakai editor di web dan diteruskan apa adanya ke render lewat inputProps.
    */
   overrides?: Record<string, Record<string, unknown>>;
+  /** id preset tema warna */
+  themeId?: string;
+  /** gaya animasi caption */
+  captionAnim?: CaptionAnim;
+  /** posisi caption */
+  captionPos?: CaptionPos;
+  /** ukuran font caption (px @1080 lebar) */
+  captionSize?: number;
+  /**
+   * Timeline hasil regenerasi narasi (kalau teks diubah & audio dibuat ulang).
+   * Kalau kosong, pakai timeline.json bawaan.
+   */
+  timelineOverride?: typeof timeline;
+  /** nama file audio di public/ (default narration.mp3) */
+  audioFile?: string;
 }
 
 /**
  * Komposisi digerakkan sepenuhnya oleh data:
- *   content.ts   → teks & isi tiap scene
+ *   content.mjs   → teks & isi tiap scene (bisa ditimpa `overrides`)
  *   timeline.json → kapan tiap scene muncul (dihitung dari durasi audio)
+ *   presets.ts    → tema warna & gaya caption
  * Tidak ada nomor frame yang ditulis tangan di file ini.
  */
 export const VerticalPromo: React.FC<VerticalPromoProps> = ({
@@ -33,9 +58,17 @@ export const VerticalPromo: React.FC<VerticalPromoProps> = ({
   withCaptions = true,
   wordsPerChunk = 3,
   overrides,
+  themeId,
+  captionAnim = 'highlight',
+  captionPos = 'bottom',
+  captionSize = 64,
+  timelineOverride,
+  audioFile = 'narration.mp3',
 }) => {
   const frame = useFrame();
   const { durationInFrames } = useCompositionConfig();
+  const tl = timelineOverride ?? timeline;
+  const pal = themeById(themeId);
 
   const fadeIn = interpolate(frame, [0, 14], [0, 1], { extrapolateRight: 'clamp' });
   const fadeOut = interpolate(frame, [durationInFrames - 18, durationInFrames], [1, 0], {
@@ -44,12 +77,11 @@ export const VerticalPromo: React.FC<VerticalPromoProps> = ({
   });
 
   const chunks = React.useMemo(
-    () => buildChunks(timeline.captions as CaptionLine[], wordsPerChunk),
-    [wordsPerChunk]
+    () => buildChunks(tl.captions as CaptionLine[], wordsPerChunk),
+    [tl, wordsPerChunk]
   );
 
-  // cocokkan tiap entri timeline dengan isinya berdasarkan id,
-  // lalu terapkan override dari editor (kalau ada)
+  // cocokkan tiap entri timeline dengan isinya, lalu terapkan override editor
   const byId = React.useMemo(() => {
     const map = Object.fromEntries(content.scenes.map((s) => [s.id, s]));
     if (!overrides) return map;
@@ -61,27 +93,43 @@ export const VerticalPromo: React.FC<VerticalPromoProps> = ({
     return map;
   }, [overrides]);
 
+  const accentValue = React.useMemo(
+    () => ({ accent: pal.accent, warm: pal.accentWarm }),
+    [pal.accent, pal.accentWarm]
+  );
+
   return (
     <CanvasElement id="VerticalPromo">
-      <Fill style={{ opacity: fadeIn * fadeOut, background: theme.color.bg }}>
-        {withAudio && (
-          <Audio src={staticFile('narration.mp3')} endAt={timeline.narrationEndFrame} />
-        )}
+      <AccentContext.Provider value={accentValue}>
+        <Fill style={{ opacity: fadeIn * fadeOut, background: pal.bg }}>
+          {withAudio && <Audio src={staticFile(audioFile)} endAt={tl.narrationEndFrame} />}
 
-        <Backdrop />
+          <Backdrop hueFrom={pal.hueFrom} hueTo={pal.hueTo} bg={pal.bg} />
 
-        {timeline.scenes.map((s) => {
-          const c = byId[s.id];
-          if (!c) return null;
-          return (
-            <Sequence key={s.id} from={s.from} durationInFrames={s.durationInFrames}>
-              <Scene kind={c.kind} data={c.data} />
-            </Sequence>
-          );
-        })}
+          {tl.scenes.map((s) => {
+            const c = byId[s.id];
+            if (!c) return null;
+            return (
+              <Sequence key={s.id} from={s.from} durationInFrames={s.durationInFrames}>
+                <Scene kind={c.kind} data={c.data} />
+              </Sequence>
+            );
+          })}
 
-        {withCaptions && <Captions chunks={chunks} />}
-      </Fill>
+          {withCaptions && (
+            <Captions
+              chunks={chunks}
+              anim={captionAnim}
+              pos={captionPos}
+              size={captionSize}
+              accent={pal.accentWarm}
+            />
+          )}
+        </Fill>
+      </AccentContext.Provider>
     </CanvasElement>
   );
 };
+
+// jaga agar theme tetap terpakai (fallback warna teks)
+void theme;

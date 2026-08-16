@@ -6,6 +6,30 @@
 import { renderVideo } from './lib/render-core.mjs';
 import path from 'node:path';
 
+/**
+ * Lapor progress ke Worker (dipakai saat jalan di CI).
+ * Dibatasi agar tidak membanjiri: minimal 12 detik antar laporan.
+ */
+const CB = process.env.CALLBACK_URL;
+const CB_SECRET = process.env.CALLBACK_SECRET;
+let lastPing = 0;
+async function report(body) {
+  if (!CB || !CB_SECRET) return;
+  const now = Date.now();
+  if (body.progress !== 1 && now - lastPing < 12000) return;
+  lastPing = now;
+  try {
+    await fetch(CB, {
+      method: 'PATCH',
+      headers: { authorization: `Bearer ${CB_SECRET}`, 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(8000),
+    });
+  } catch {
+    /* callback gagal tidak boleh menggagalkan render */
+  }
+}
+
 const compositionId = process.env.COMP ?? 'VerticalPromo';
 
 /** Props dari CI (JSON string). Aman kalau kosong / bukan objek. */
@@ -29,12 +53,14 @@ const result = await renderVideo({
   outputPath,
   audioPath,
   inputProps,
-  onProgress: ({ stage, message }) => {
+  onProgress: ({ stage, progress, message }) => {
     if (stage !== lastStage) {
       lastStage = stage;
       console.log(`▸ ${stage}`);
     }
     if (stage === 'rendering') process.stdout.write(`\r  ${message}   `);
+    // 0.2–0.95 dipetakan ke rentang progress keseluruhan job
+    report({ status: 'running', stage, progress: 0.2 + progress * 0.75, message });
   },
 });
 

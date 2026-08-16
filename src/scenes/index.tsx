@@ -14,6 +14,16 @@ import type { SceneKind } from '../config/content';
 
 const t = theme;
 
+/**
+ * Konteks warna aksen — supaya preset tema bisa mengganti warna
+ * tanpa menyentuh theme.ts (yang statis saat build).
+ */
+export const AccentContext = React.createContext<{ accent: string; warm: string }>({
+  accent: t.color.accent,
+  warm: t.color.accentWarm,
+});
+const useAccent = () => React.useContext(AccentContext);
+
 /** Fade + slide masuk/keluar otomatis di tiap scene, biar transisi mulus. */
 const SceneShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const frame = useFrame();
@@ -42,6 +52,7 @@ const Center: React.FC<{ children: React.ReactNode; gap?: number }> = ({ childre
 const HookScene: React.FC<{ lineA: string; lineB: string }> = ({ lineA, lineB }) => {
   const frame = useFrame();
   const { fps } = useCompositionConfig();
+  const { accent, warm } = useAccent();
   const star = shapeStar({ points: 5, innerRadius: 40, outerRadius: 92 });
   const pop = spring({ frame, fps, config: t.spring.pop });
   const spin = interpolate(frame, [0, 200], [0, 90]);
@@ -54,10 +65,10 @@ const HookScene: React.FC<{ lineA: string; lineB: string }> = ({ lineA, lineB })
         viewBox={`0 0 ${star.width} ${star.height}`}
         style={{
           transform: `rotate(${spin}deg) scale(${pop})`,
-          filter: `drop-shadow(0 0 40px ${t.color.accentWarm}88)`,
+          filter: `drop-shadow(0 0 40px ${warm}88)`,
         }}
       >
-        <path d={star.d} fill={t.color.accentWarm} />
+        <path d={star.d} fill={warm} />
       </svg>
       <AnimatedText
         text={lineA}
@@ -80,7 +91,7 @@ const HookScene: React.FC<{ lineA: string; lineB: string }> = ({ lineA, lineB })
         style={{
           fontSize: t.fontSize.hero,
           fontWeight: 800,
-          color: t.color.accent,
+          color: accent,
           fontFamily: t.font.sans,
           textAlign: 'center',
           letterSpacing: 2,
@@ -181,7 +192,8 @@ const ParamScene: React.FC<{
   const step = Math.min(Math.floor(frame / per), values.length - 1);
   const local = frame - step * per;
   const s = Math.min(spring({ frame: local, fps, config: t.spring.pop }), 1);
-  const palette = [t.color.accent, t.color.success, t.color.danger];
+  const { accent } = useAccent();
+  const palette = [accent, t.color.success, t.color.danger];
   const color = palette[step % palette.length];
 
   return (
@@ -236,6 +248,7 @@ const ParamScene: React.FC<{
 const StepsScene: React.FC<{ steps: { icon: string; text: string }[] }> = ({ steps }) => {
   const frame = useFrame();
   const { fps } = useCompositionConfig();
+  const { accent } = useAccent();
 
   return (
     <Fill
@@ -278,7 +291,7 @@ const StepsScene: React.FC<{ steps: { icon: string; text: string }[] }> = ({ ste
               </span>
             </div>
             {i < steps.length - 1 && (
-              <span style={{ fontSize: 46, color: t.color.accent, opacity: s }}>↓</span>
+              <span style={{ fontSize: 46, color: accent, opacity: s }}>↓</span>
             )}
           </React.Fragment>
         );
@@ -295,6 +308,7 @@ const OutroScene: React.FC<{ brand: string; tagline: string; cta: string }> = ({
 }) => {
   const frame = useFrame();
   const { fps } = useCompositionConfig();
+  const { accent } = useAccent();
   const circle = shapeCircle({ radius: 210 });
   const grow = interpolate(frame, [0, 45], [0.25, 1], {
     extrapolateRight: 'clamp',
@@ -310,7 +324,7 @@ const OutroScene: React.FC<{ brand: string; tagline: string; cta: string }> = ({
         viewBox={`0 0 ${circle.width} ${circle.height}`}
         style={{ position: 'absolute', transform: `scale(${grow})`, opacity: 0.16 }}
       >
-        <path d={circle.d} fill={t.color.accent} />
+        <path d={circle.d} fill={accent} />
       </svg>
       <AnimatedText
         text={brand}
@@ -337,9 +351,9 @@ const OutroScene: React.FC<{ brand: string; tagline: string; cta: string }> = ({
           marginTop: 26,
           padding: '28px 54px',
           borderRadius: t.radius.pill,
-          background: t.color.accent,
+          background: accent,
           transform: `scale(${btn})`,
-          boxShadow: `0 20px 60px ${t.color.accent}6b`,
+          boxShadow: `0 20px 60px ${accent}6b`,
         }}
       >
         <span

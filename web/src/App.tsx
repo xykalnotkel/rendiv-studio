@@ -5,6 +5,8 @@ import timeline from '@video/generated/timeline.json';
 import { RenderPanel } from './RenderPanel';
 import { EditorPanel } from './EditorPanel';
 import { initialValues, toOverrides } from './editor-schema';
+import { StylePanel, defaultStyle, type StyleState } from './StylePanel';
+import { content } from '@video/config/content';
 
 /**
  * Konfigurator + preview.
@@ -24,14 +26,31 @@ function fmt(frame: number, fps: number) {
 
 export default function App() {
   const ref = React.useRef<PlayerRef>(null);
-  const [withCaptions, setWithCaptions] = React.useState(true);
-  const [wordsPerChunk, setWordsPerChunk] = React.useState(3);
   const [frame, setFrame] = React.useState(0);
   const [playing, setPlaying] = React.useState(false);
   const [values, setValues] = React.useState(initialValues);
+  const [style, setStyle] = React.useState<StyleState>(defaultStyle);
+  const [narration, setNarration] = React.useState<Record<string, string>>(() =>
+    Object.fromEntries(content.scenes.map((s) => [s.id, s.narration]))
+  );
+
+  const patchStyle = React.useCallback(
+    (p: Partial<StyleState>) => setStyle((prev) => ({ ...prev, ...p })),
+    []
+  );
+
+  /** narasi yang benar-benar diubah saja — dikirim ke TTS saat render */
+  const narrationChanged = React.useMemo(() => {
+    const out: Record<string, string> = {};
+    for (const sc of content.scenes) {
+      if ((narration[sc.id] ?? '') !== sc.narration) out[sc.id] = narration[sc.id] ?? '';
+    }
+    return out;
+  }, [narration]);
 
   const overrides = React.useMemo(() => toOverrides(values), [values]);
-  const dirty = Object.keys(overrides).length > 0;
+  const dirty =
+    Object.keys(overrides).length > 0 || Object.keys(narrationChanged).length > 0;
 
   const setField = React.useCallback((sceneId: string, key: string, v: string) => {
     setValues((prev) => ({ ...prev, [sceneId]: { ...prev[sceneId], [key]: v } }));
@@ -61,9 +80,30 @@ export default function App() {
     };
   }, []);
 
+  // props untuk PREVIEW (player di browser)
   const inputProps = React.useMemo(
-    () => ({ withCaptions, wordsPerChunk, withAudio: true, overrides }),
-    [withCaptions, wordsPerChunk, overrides]
+    () => ({
+      withAudio: true,
+      withCaptions: style.withCaptions,
+      wordsPerChunk: style.wordsPerChunk,
+      captionAnim: style.captionAnim,
+      captionPos: style.captionPos,
+      captionSize: style.captionSize,
+      themeId: style.themeId,
+      overrides,
+    }),
+    [style, overrides]
+  );
+
+  // props untuk RENDER — sama, plus opsi suara & narasi baru
+  const renderProps = React.useMemo(
+    () => ({
+      ...inputProps,
+      voice: style.voice,
+      rate: style.rate,
+      ...(Object.keys(narrationChanged).length ? { narration: narrationChanged } : {}),
+    }),
+    [inputProps, style.voice, style.rate, narrationChanged]
   );
 
   return (
@@ -87,46 +127,21 @@ export default function App() {
           <EditorPanel
             values={values}
             onChange={setField}
-            onReset={() => setValues(initialValues())}
+            onReset={() => {
+              setValues(initialValues());
+              setNarration(Object.fromEntries(content.scenes.map((x) => [x.id, x.narration])));
+              setStyle(defaultStyle);
+            }}
             dirty={dirty}
             onJump={(f) => ref.current?.seekTo(f)}
             activeSceneId={activeSceneId}
+            narration={narration}
+            onNarration={(id, text) => setNarration((p) => ({ ...p, [id]: text }))}
           />
 
-          <RenderPanel inputProps={inputProps} />
+          <StylePanel value={style} onChange={patchStyle} />
 
-          <section className="panel">
-            <span className="panel-label">Caption</span>
-            <div className="seg" role="group" aria-label="Tampilkan caption">
-              <button
-                className={`btn ${withCaptions ? 'btn--on' : ''}`}
-                aria-pressed={withCaptions}
-                onClick={() => setWithCaptions(true)}
-              >
-                Tampil
-              </button>
-              <button
-                className={`btn ${!withCaptions ? 'btn--on' : ''}`}
-                aria-pressed={!withCaptions}
-                onClick={() => setWithCaptions(false)}
-              >
-                Sembunyikan
-              </button>
-            </div>
-
-            <label className="panel-label" htmlFor="wpc">
-              Kata per potongan: {wordsPerChunk}
-            </label>
-            <input
-              id="wpc"
-              className="range"
-              type="range"
-              min={1}
-              max={6}
-              value={wordsPerChunk}
-              onChange={(e) => setWordsPerChunk(Number(e.target.value))}
-            />
-          </section>
+          <RenderPanel inputProps={renderProps} />
 
           <section className="panel">
             <span className="panel-label">Lompat ke scene</span>

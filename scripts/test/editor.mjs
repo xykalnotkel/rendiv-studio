@@ -15,10 +15,10 @@ await p.waitForTimeout(1500);
 
 const body = await p.locator('body').innerText();
 console.log('teks baru tampil di player :', body.includes('TES EDITOR') ? '✓' : '✗');
-console.log('tombol reset muncul        :', await p.locator('.linkbtn').count() ? '✓' : '✗');
+console.log('tombol reset muncul        :', await p.locator('.panel-head .linkbtn').count() ? '✓' : '✗');
 
 // reset
-await p.locator('.linkbtn').click();
+await p.locator('.panel-head .linkbtn').click();
 await p.waitForTimeout(1200);
 const after = await p.locator('body').innerText();
 console.log('reset mengembalikan asli   :', !after.includes('TES EDITOR') && after.includes('Bikin video') ? '✓' : '✗');

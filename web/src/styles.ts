@@ -266,8 +266,9 @@ body {
   gap: 10px; margin-bottom: 10px;
 }
 .linkbtn {
-  font: inherit; background: none; border: none; padding: 4px 6px;
+  font: inherit; background: none; border: none; padding: 8px 8px;
   color: ${c.accent}; font-size: 12.5px; cursor: pointer; border-radius: 6px;
+  min-height: 38px;
 }
 .linkbtn:hover { text-decoration: underline; }
 .linkbtn:focus-visible { outline: 2px solid ${c.accent}; outline-offset: 2px; }
@@ -331,6 +332,48 @@ body {
 textarea.input { font-family: ${theme.font.mono}; white-space: pre; overflow-wrap: normal; overflow-x: auto; }
 
 .field-hint { margin: 0; font-size: 11.5px; color: ${c.muted}; line-height: 1.5; }
+
+/* ---------- panel gaya ---------- */
+.sub {
+  display: flex; align-items: center;
+  font-size: 12px; color: ${c.subtle}; font-weight: 600;
+  margin: 14px 0 8px;
+}
+.sub:first-of-type { margin-top: 4px; }
+
+.mini { display: block; font-size: 11.5px; color: ${c.muted}; margin: 10px 0 4px; }
+
+.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
+.swatch {
+  font: inherit; cursor: pointer;
+  display: flex; align-items: center; gap: 5px;
+  padding: 9px 10px; min-height: 42px;
+  border-radius: 9px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(0,0,0,0.28);
+  color: ${c.subtle};
+}
+.swatch:hover { background: rgba(255,255,255,0.06); }
+.swatch.is-on { border-color: ${c.accent}; background: rgba(88,166,255,0.12); color: #e6edf3; }
+.swatch:focus-visible { outline: 2px solid ${c.accent}; outline-offset: 2px; }
+.swatch .dot { width: 11px; height: 11px; border-radius: 50%; flex: none; }
+.sw-name { font-size: 11.5px; margin-left: 2px; overflow: hidden; text-overflow: ellipsis; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  font: inherit; cursor: pointer;
+  padding: 8px 13px; min-height: 40px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: transparent;
+  color: ${c.subtle};
+  font-size: 12.5px;
+}
+.chip:hover { background: rgba(255,255,255,0.06); }
+.chip.is-on { background: ${c.accent}; border-color: ${c.accent}; color: ${c.bg}; font-weight: 700; }
+.chip:focus-visible { outline: 2px solid ${c.accent}; outline-offset: 2px; }
+
+.row2 { display: grid; gap: 10px; }
 
 /* hormati preferensi pengguna yang sensitif terhadap animasi */
 @media (prefers-reduced-motion: reduce) {

@@ -18,7 +18,11 @@ permissions:
 jobs:
   render:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
+
+    env:
+      CALLBACK_URL: ${{ github.event.client_payload.callbackUrl }}
+      CALLBACK_SECRET: ${{ secrets.CALLBACK_SECRET }}
 
     steps:
       - uses: actions/checkout@v4
@@ -28,22 +32,40 @@ jobs:
           node-version: 22
           cache: npm
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       - name: Siapkan variabel job
         id: vars
+        env:
+          PAYLOAD: ${{ toJSON(github.event.client_payload) }}
         run: |
           echo "job_id=${{ github.event.client_payload.jobId || 'manual' }}" >> $GITHUB_OUTPUT
           echo "comp=${{ github.event.client_payload.compositionId || inputs.compositionId || 'VerticalPromo' }}" >> $GITHUB_OUTPUT
-          echo "callback=${{ github.event.client_payload.callbackUrl }}" >> $GITHUB_OUTPUT
           echo "run_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_OUTPUT
+          # narasi & suara diekstrak dari payload (aman terhadap kutip/emoji)
+          echo "$PAYLOAD" > /tmp/payload.json
+          python3 - <<'PY' >> $GITHUB_OUTPUT
+          import json, os
+          p = json.load(open('/tmp/payload.json')) or {}
+          ip = p.get('inputProps') or {}
+          print('voice=' + (ip.get('voice') or 'id-ID-GadisNeural'))
+          print('rate=' + (ip.get('rate') or '+0%'))
+          nar = ip.get('narration') or {}
+          print('has_narration=' + ('1' if nar else '0'))
+          json.dump(nar, open('/tmp/narration.json', 'w'))
+          PY
 
+      # ---------- lapor mulai ----------
       - name: Lapor mulai
-        if: steps.vars.outputs.callback != ''
+        if: env.CALLBACK_URL != ''
         continue-on-error: true
         run: |
-          curl -sS -o /dev/null -w "callback HTTP %{http_code}\n" -X PATCH "${{ steps.vars.outputs.callback }}" \
-            -H "authorization: Bearer ${{ secrets.CALLBACK_SECRET }}" \
+          curl -sS -o /dev/null -w "callback HTTP %{http_code}\n" -X PATCH "$CALLBACK_URL" \
+            -H "authorization: Bearer $CALLBACK_SECRET" \
             -H "content-type: application/json" \
-            -d '{"status":"running","stage":"setup","progress":0.05,
+            -d '{"status":"running","stage":"setup","progress":0.04,
                  "message":"Menyiapkan runner…","runUrl":"${{ steps.vars.outputs.run_url }}"}'
 
       - run: npm ci
@@ -51,18 +73,30 @@ jobs:
       - name: Pasang Chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Lapor render dimulai
-        if: steps.vars.outputs.callback != ''
+      # ---------- narasi ----------
+      - name: Pasang edge-tts
+        run: pip install --quiet edge-tts
+
+      - name: Lapor narasi
+        if: env.CALLBACK_URL != ''
         continue-on-error: true
         run: |
-          curl -sS -o /dev/null -w "callback HTTP %{http_code}\n" -X PATCH "${{ steps.vars.outputs.callback }}" \
-            -H "authorization: Bearer ${{ secrets.CALLBACK_SECRET }}" \
+          curl -sS -o /dev/null -w "callback HTTP %{http_code}\n" -X PATCH "$CALLBACK_URL" \
+            -H "authorization: Bearer $CALLBACK_SECRET" \
             -H "content-type: application/json" \
-            -d '{"stage":"rendering","progress":0.2,"message":"Merender 1109 frame di runner…"}'
+            -d '{"stage":"narasi","progress":0.10,"message":"Membuat narasi suara…"}'
 
-      - name: Bangun aset (timeline + narasi)
+      - name: Buat narasi (TTS)
+        run: |
+          python3 scripts/tts.py \
+            --voice "${{ steps.vars.outputs.voice }}" \
+            --rate "${{ steps.vars.outputs.rate }}" \
+            --narration "$(cat /tmp/narration.json)"
+
+      - name: Bangun timeline + audio gabungan
         run: npm run build:assets
 
+      # ---------- render ----------
       - name: Render
         env:
           COMP: ${{ steps.vars.outputs.comp }}
@@ -96,22 +130,22 @@ jobs:
           retention-days: 7
 
       - name: Lapor selesai
-        if: steps.vars.outputs.callback != ''
+        if: env.CALLBACK_URL != ''
         continue-on-error: true
         run: |
-          curl -sS -o /dev/null -w "callback HTTP %{http_code}\n" -X PATCH "${{ steps.vars.outputs.callback }}" \
-            -H "authorization: Bearer ${{ secrets.CALLBACK_SECRET }}" \
+          curl -sS -o /dev/null -w "callback HTTP %{http_code}\n" -X PATCH "$CALLBACK_URL" \
+            -H "authorization: Bearer $CALLBACK_SECRET" \
             -H "content-type: application/json" \
             -d '{"status":"done","stage":"done","progress":1,"message":"Selesai",
                  "videoUrl":"${{ steps.upload.outputs.url }}",
                  "bytes":${{ steps.upload.outputs.bytes }}}'
 
       - name: Lapor gagal
-        if: failure() && steps.vars.outputs.callback != ''
+        if: failure() && env.CALLBACK_URL != ''
         continue-on-error: true
         run: |
-          curl -sS -o /dev/null -w "callback HTTP %{http_code}\n" -X PATCH "${{ steps.vars.outputs.callback }}" \
-            -H "authorization: Bearer ${{ secrets.CALLBACK_SECRET }}" \
+          curl -sS -o /dev/null -w "callback HTTP %{http_code}\n" -X PATCH "$CALLBACK_URL" \
+            -H "authorization: Bearer $CALLBACK_SECRET" \
             -H "content-type: application/json" \
             -d '{"status":"error","stage":"error",
                  "error":"Render gagal — lihat log Actions",

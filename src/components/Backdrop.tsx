@@ -3,9 +3,10 @@ import { useFrame, useCompositionConfig, Fill, interpolate } from '@rendiv/core'
 import { theme } from '../config/theme';
 
 /** Latar bergerak: gradasi hue + dua orb blur + grid halus. */
-export const Backdrop: React.FC<{ hueFrom?: number; hueTo?: number }> = ({
+export const Backdrop: React.FC<{ hueFrom?: number; hueTo?: number; bg?: string }> = ({
   hueFrom = 205,
   hueTo = 285,
+  bg,
 }) => {
   const frame = useFrame();
   const { durationInFrames } = useCompositionConfig();
@@ -13,7 +14,7 @@ export const Backdrop: React.FC<{ hueFrom?: number; hueTo?: number }> = ({
   const drift = interpolate(frame, [0, durationInFrames], [0, -160]);
 
   return (
-    <Fill style={{ background: `linear-gradient(180deg, hsl(${hue} 45% 9%), ${theme.color.bg} 65%)` }}>
+    <Fill style={{ background: `linear-gradient(180deg, hsl(${hue} 45% 9%), ${bg ?? theme.color.bg} 65%)` }}>
       <div
         style={{
           position: 'absolute',

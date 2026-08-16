@@ -21,6 +21,9 @@ interface Props {
   dirty: boolean;
   onJump: (frame: number) => void;
   activeSceneId: string | null;
+  /** teks narasi per scene (dibuat ulang jadi suara saat render) */
+  narration: Record<string, string>;
+  onNarration: (sceneId: string, text: string) => void;
 }
 
 const FieldInput: React.FC<{
@@ -71,6 +74,8 @@ export const EditorPanel: React.FC<Props> = ({
   dirty,
   onJump,
   activeSceneId,
+  narration,
+  onNarration,
 }) => {
   const [open, setOpen] = React.useState<string | null>(content.scenes[0]?.id ?? null);
 
@@ -126,6 +131,23 @@ export const EditorPanel: React.FC<Props> = ({
                       onChange={(v) => onChange(scene.id, f.key, v)}
                     />
                   ))}
+
+                  <div className="field">
+                    <label className="field-label" htmlFor={`nar-${scene.id}`}>
+                      Narasi (jadi suara)
+                      <span className="counter">{(narration[scene.id] ?? '').length}</span>
+                    </label>
+                    <textarea
+                      id={`nar-${scene.id}`}
+                      className="input"
+                      rows={3}
+                      value={narration[scene.id] ?? ''}
+                      onChange={(e) => onNarration(scene.id, e.target.value)}
+                    />
+                    <p className="field-hint">
+                      Diubah jadi suara saat render. Makin panjang, makin lama scene ini tampil.
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
