@@ -25,7 +25,8 @@ scripts/
   render-server.mjs    ← worker HTTP + antrian job
 web/                   ← front-end (Vite + @rendiv/player + panel render)
 cloudflare/            ← Worker + Containers (perlu Workers Paid)
-cloudflare-free/       ← situs statis saja (Workers Free, tanpa kartu)
+cloudflare-free/       ← Worker publik: situs + API antrian (Workers Free)
+.github/workflows/     ← render.yml: mesin render di GitHub Actions
 Dockerfile             ← image worker render
 ```
 
@@ -60,19 +61,20 @@ otomatis menyusut dan scene sesudahnya bergeser.
 
 ## Deploy
 
-| Cara | Biaya | Kartu kredit | Render MP4 |
+**Live:** https://rendiv-studio.akuntiktok76y.workers.dev
+
+| Cara | Biaya | Kartu | Render publik |
 |---|---|---|---|
-| **Cloudflare Free + worker lokal** | gratis | ❌ tidak perlu | ✅ saat worker nyala |
-| Cloudflare Workers Paid + Containers | $5/bln | ✅ perlu | ✅ 24/7 |
-| Vercel (front-end saja) | gratis | ❌ | ❌ perlu worker eksternal |
+| **Cloudflare Free + GitHub Actions** | gratis | ❌ | ✅ tanpa komputer nyala |
+| Cloudflare Free + worker lokal | gratis | ❌ | ⚠️ komputer harus nyala |
+| Cloudflare Paid + Containers | $5/bln | ✅ | ✅ |
 
-**Tanpa kartu kredit** → [DEPLOY-GRATIS.md](DEPLOY-GRATIS.md)
-```bash
-cd cloudflare-free && npm run deploy   # situs statis, gratis
-npm run worker                         # render di komputer sendiri
-```
+Rekomendasi → **[DEPLOY-PUBLIK.md](DEPLOY-PUBLIK.md)**
+Render dikerjakan GitHub Actions (4 vCPU, gratis tanpa batas untuk repo publik),
+hasilnya diunggah ke GitHub Release sebagai tautan unduhan publik.
 
-Perbandingan lengkap Cloudflare vs Vercel + biaya: [DEPLOY.md](DEPLOY.md)
+Alternatif: [DEPLOY-GRATIS.md](DEPLOY-GRATIS.md) (worker lokal) ·
+[DEPLOY.md](DEPLOY.md) (perbandingan Containers vs Vercel)
 
 ## Worker render
 
